@@ -1,0 +1,12 @@
+bin/
+*.exe
+*.out
+
+go.work
+go.work.sum
+
+.DS_Store
+Thumbs.db
+
+.idea/
+.vscode/
