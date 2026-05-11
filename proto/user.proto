@@ -1,12 +1,36 @@
 syntax = "proto3";
 
 package user;
-
 option go_package = "./pb";
 
 service UserService {
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
-  rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse) {}
+  rpc CreateUser(CreateUserRequest) returns (UserResponse) {}
+  rpc UpdateUserProfile(UpdateUserRequest) returns (UserResponse) {}
+  rpc GetUserById(UserIdRequest) returns (UserResponse) {}
+  rpc DeleteUser(UserIdRequest) returns (StatusResponse) {}
+  rpc ChangePassword(ChangePasswordRequest) returns (StatusResponse) {}
+  rpc VerifyEmail(VerifyEmailRequest) returns (StatusResponse) {}
+  rpc SendPasswordReset(EmailRequest) returns (StatusResponse) {}
+  rpc ResetPassword(ResetPasswordRequest) returns (StatusResponse) {}
+  rpc UpdateKYCStatus(UpdateKYCRequest) returns (StatusResponse) {}
+  rpc GetKYCStatus(UserIdRequest) returns (KYCResponse) {}
+  rpc ListUsers(EmptyRequest) returns (UserListResponse) {}
+  rpc SuspendUser(UserIdRequest) returns (StatusResponse) {}
+}
+
+message EmptyRequest {}
+
+message UserIdRequest {
+  string user_id = 1;
+}
+
+message EmailRequest {
+  string email = 1;
+}
+
+message StatusResponse {
+  bool success = 1;
+  string message = 2;
 }
 
 message CreateUserRequest {
@@ -15,18 +39,42 @@ message CreateUserRequest {
   string password = 3;
 }
 
-message CreateUserResponse {
+message UpdateUserRequest {
   string user_id = 1;
-  string message = 2;
+  string name = 2;
 }
 
-message GetUserByIdRequest {
+message ChangePasswordRequest {
   string user_id = 1;
+  string old_password = 2;
+  string new_password = 3;
 }
 
-message GetUserByIdResponse {
+message VerifyEmailRequest {
+  string user_id = 1;
+  string token = 2;
+}
+
+message ResetPasswordRequest {
+  string token = 1;
+  string new_password = 2;
+}
+
+message UpdateKYCRequest {
+  string user_id = 1;
+  string status = 2;
+}
+
+message UserResponse {
   string user_id = 1;
   string name = 2;
   string email = 3;
-  string kyc_status = 4;
+}
+
+message KYCResponse {
+  string status = 1;
+}
+
+message UserListResponse {
+  repeated UserResponse users = 1;
 }

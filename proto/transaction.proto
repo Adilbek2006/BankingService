@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package transaction;
+option go_package = "./pb";
+
+service TransactionService {
+  rpc InitiateTransfer(TransferRequest) returns (TransactionResponse) {}
+  rpc ProcessDeposit(DepositRequest) returns (TransactionResponse) {}
+  rpc ProcessWithdrawal(WithdrawalRequest) returns (TransactionResponse) {}
+  rpc GetTransactionStatus(TransactionIdRequest) returns (StatusResponse) {}
+  rpc GetTransactionHistory(AccountIdRequest) returns (HistoryResponse) {}
+  rpc ReverseTransaction(TransactionIdRequest) returns (TransactionResponse) {}
+  rpc ListPendingTransactions(EmptyRequest) returns (HistoryResponse) {}
+  rpc ApproveTransaction(TransactionIdRequest) returns (StatusResponse) {}
+  rpc RejectTransaction(TransactionIdRequest) returns (StatusResponse) {}
+  rpc GenerateStatement(StatementRequest) returns (StatementResponse) {}
+  rpc CalculateTransferFee(FeeRequest) returns (FeeResponse) {}
+  rpc GetDailyTransactionVolume(EmptyRequest) returns (VolumeResponse) {}
+}
+
+message EmptyRequest {}
+message TransactionIdRequest { string transaction_id = 1; }
+message AccountIdRequest { string account_id = 1; }
+message StatusResponse { string status = 1; }
+
+message TransferRequest { string from_account = 1; string to_account = 2; double amount = 3; }
+message DepositRequest { string account_id = 1; double amount = 2; }
+message WithdrawalRequest { string account_id = 1; double amount = 2; }
+message TransactionResponse { string transaction_id = 1; string status = 2; }
+message HistoryResponse { repeated TransactionResponse transactions = 1; }
+message StatementRequest { string account_id = 1; string start_date = 2; string end_date = 3; }
+message StatementResponse { string file_url = 1; }
+message FeeRequest { double amount = 1; string transfer_type = 2; }
+message FeeResponse { double fee_amount = 1; }
+message VolumeResponse { double total_volume = 1; }
