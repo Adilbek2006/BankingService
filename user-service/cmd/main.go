@@ -23,7 +23,7 @@ func main() {
 
 	pb.RegisterUserServiceServer(grpcServer, userHandler)
 
-	fmt.Println(" User Service запущен на порту 50053...")
+	fmt.Println(" User Service started on port: 50053...")
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Server Error: %v", err)
