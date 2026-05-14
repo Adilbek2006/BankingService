@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -25,4 +26,11 @@ func NewRedisCache(host, port string) (*RedisCache, error) {
 
 	log.Println("Successfully connected to Redis!")
 	return &RedisCache{client: client}, nil
+}
+func (r *RedisCache) SaveToCache(ctx context.Context, accountID string, data string) error {
+	return r.client.Set(ctx, "account:"+accountID, data, 5*time.Minute).Err()
+}
+
+func (r *RedisCache) GetFromCache(ctx context.Context, accountID string) (string, error) {
+	return r.client.Get(ctx, "account:"+accountID).Result()
 }
