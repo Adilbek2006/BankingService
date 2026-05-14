@@ -8,16 +8,25 @@ import (
 
 	pb "BankingService/pb/transaction"
 	delivery "BankingService/transaction-service/internal/delivery/grpc"
+	"BankingService/transaction-service/internal/repository"
 )
 
 func main() {
+	db, err := repository.NewPostgresDB("localhost", "5433", "user", "password", "banking")
+	if err != nil {
+		log.Fatalf("DB Connection failed: %v", err)
+	}
+	defer db.Close()
+
 	lis, err := net.Listen("tcp", ":50052")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	transactionHandler := delivery.NewTransactionHandler()
+
+	repo := repository.NewTransactionRepository(db)
+	transactionHandler := delivery.NewTransactionHandler(repo)
 
 	pb.RegisterTransactionServiceServer(grpcServer, transactionHandler)
 
