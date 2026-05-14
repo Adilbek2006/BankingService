@@ -25,5 +25,12 @@ services:
       - "8222:8222"
     restart: always
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    restart: always
+
 volumes:
   pgdata:
