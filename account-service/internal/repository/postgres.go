@@ -55,3 +55,15 @@ func (r *AccountRepository) SaveAccount(accountID, userID, currency string) erro
 	_, err := r.db.Exec(query, accountID, userID, currency)
 	return err
 }
+func (r *AccountRepository) GetAccountByID(accountID string) (string, string, float64, string, error) {
+	query := `SELECT user_id, currency, balance, status FROM accounts WHERE account_id = $1`
+
+	var userID, currency, status string
+	var balance float64
+
+	err := r.db.QueryRow(query, accountID).Scan(&userID, &currency, &balance, &status)
+	if err != nil {
+		return "", "", 0, "", err
+	}
+	return userID, currency, balance, status, nil
+}

@@ -15,16 +15,16 @@ import (
 func main() {
 	db, err := repository.NewPostgresDB("localhost", "5433", "user", "password", "banking")
 	if err != nil {
-		log.Fatalf("Ошибка подключения к БД: %v", err)
+		log.Fatalf("Error connecting to the database: %v", err)
 	}
 	defer db.Close()
-	fmt.Println("Успешно подключились к PostgreSQL!")
+	fmt.Println("Successfully connected to PostgreSQL!")
 
 	redisCache, err := repository.NewRedisCache("localhost", "6379")
 	if err != nil {
-		log.Fatalf("Ошибка подключения к Redis: %v", err)
+		log.Fatalf("Redis connection error: %v", err)
 	}
-	_ = redisCache
+
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to start listening: %v", err)
@@ -33,11 +33,12 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	repo := repository.NewAccountRepository(db)
-	accountHandler := delivery.NewAccountHandler(repo)
+
+	accountHandler := delivery.NewAccountHandler(repo, redisCache)
 
 	pb.RegisterAccountServiceServer(grpcServer, accountHandler)
 
-	fmt.Println("Account Service запущен на порту 50051...")
+	fmt.Println("Account Service is running on port 50051...")
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Server Error: %v", err)
