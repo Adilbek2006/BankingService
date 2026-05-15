@@ -16,21 +16,21 @@ import (
 )
 
 func main() {
-	userConn, err := grpc.Dial("localhost:50053", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	userConn, err := grpc.Dial("127.0.0.1:50053", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Failed to connect to User Service: %v", err)
 	}
 	defer userConn.Close()
 	userClient := userPb.NewUserServiceClient(userConn)
 
-	accountConn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	accountConn, err := grpc.Dial("127.0.0.1:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Failed to connect to Account Service: %v", err)
 	}
 	defer accountConn.Close()
 	accountClient := accountPb.NewAccountServiceClient(accountConn)
 
-	txConn, err := grpc.Dial("localhost:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	txConn, err := grpc.Dial("127.0.0.1:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Failed to connect to Transaction Service: %v", err)
 	}
@@ -115,6 +115,31 @@ func main() {
 		grpcResp, err := txClient.ProcessDeposit(ctx, &transactionPb.DepositRequest{
 			AccountId: reqBody.AccountId,
 			Amount:    reqBody.Amount,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/transactions/transfer", func(c *gin.Context) {
+		var reqBody struct {
+			FromAccount string  `json:"from_account"`
+			ToAccount   string  `json:"to_account"`
+			Amount      float64 `json:"amount"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.InitiateTransfer(ctx, &transactionPb.TransferRequest{
+			FromAccount: reqBody.FromAccount,
+			ToAccount:   reqBody.ToAccount,
+			Amount:      reqBody.Amount,
 		})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

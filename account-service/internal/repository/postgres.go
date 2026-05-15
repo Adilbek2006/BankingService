@@ -35,7 +35,7 @@ func NewPostgresDB(host, port, user, password, dbname string) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error account table creation: %v", err)
 	}
-
+	db.Exec(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS to_account_id VARCHAR(50);`)
 	log.Println(" Accounts table is ready to work")
 	return db, nil
 }

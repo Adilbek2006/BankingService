@@ -34,3 +34,6 @@ func (r *RedisCache) SaveToCache(ctx context.Context, accountID string, data str
 func (r *RedisCache) GetFromCache(ctx context.Context, accountID string) (string, error) {
 	return r.client.Get(ctx, "account:"+accountID).Result()
 }
+func (r *RedisCache) DeleteFromCache(ctx context.Context, accountID string) error {
+	return r.client.Del(ctx, "account:"+accountID).Err()
+}

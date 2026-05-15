@@ -25,6 +25,7 @@ func NewPostgresDB(host, port, user, password, dbname string) (*sql.DB, error) {
 	CREATE TABLE IF NOT EXISTS transactions (
 		transaction_id VARCHAR(50) PRIMARY KEY,
 		account_id VARCHAR(50) NOT NULL,
+		to_account_id VARCHAR(50),
 		amount DECIMAL(15, 2) NOT NULL,
 		type VARCHAR(20) NOT NULL,
 		status VARCHAR(20) DEFAULT 'SUCCESS',
@@ -51,5 +52,12 @@ func NewTransactionRepository(db *sql.DB) *TransactionRepository {
 func (r *TransactionRepository) SaveTransaction(transactionID, accountID, txType string, amount float64) error {
 	query := `INSERT INTO transactions (transaction_id, account_id, amount, type, status) VALUES ($1, $2, $3, $4, 'SUCCESS')`
 	_, err := r.db.Exec(query, transactionID, accountID, amount, txType)
+	return err
+}
+
+func (r *TransactionRepository) SaveTransfer(id, from, to string, amount float64) error {
+	query := `INSERT INTO transactions (transaction_id, account_id, to_account_id, amount, type, status) 
+              VALUES ($1, $2, $3, $4, 'TRANSFER', 'PENDING')`
+	_, err := r.db.Exec(query, id, from, to, amount)
 	return err
 }
