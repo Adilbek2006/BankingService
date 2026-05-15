@@ -67,3 +67,8 @@ func (r *AccountRepository) GetAccountByID(accountID string) (string, string, fl
 	}
 	return userID, currency, balance, status, nil
 }
+func (r *AccountRepository) UpdateBalance(accountID string, amount float64) error {
+	query := `UPDATE accounts SET balance = balance + $1 WHERE account_id = $2`
+	_, err := r.db.Exec(query, amount, accountID)
+	return err
+}
