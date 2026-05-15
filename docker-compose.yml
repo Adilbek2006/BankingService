@@ -11,8 +11,17 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d
     restart: always
+
+  migrate:
+    image: migrate/migrate:v4.17.1
+    depends_on:
+      - postgres
+    volumes:
+      - ./migrations:/migrations
+    command: ["-path", "/migrations", "-database", "postgres://user:password@postgres:5432/banking?sslmode=disable", "up"]
+    restart: "no"
+
   redis:
     image: redis:7-alpine
     ports:
