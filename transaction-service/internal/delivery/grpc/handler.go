@@ -5,6 +5,7 @@ import (
 	"log"
 
 	pb "BankingService/pb/transaction"
+	"BankingService/transaction-service/internal/broker"
 	"BankingService/transaction-service/internal/repository"
 
 	"github.com/google/uuid"
@@ -12,11 +13,12 @@ import (
 
 type TransactionHandler struct {
 	pb.UnimplementedTransactionServiceServer
-	repo *repository.TransactionRepository
+	repo   *repository.TransactionRepository
+	broker *broker.RabbitMQ
 }
 
-func NewTransactionHandler(repo *repository.TransactionRepository) *TransactionHandler {
-	return &TransactionHandler{repo: repo}
+func NewTransactionHandler(repo *repository.TransactionRepository, broker *broker.RabbitMQ) *TransactionHandler {
+	return &TransactionHandler{repo: repo, broker: broker}
 }
 
 func (h *TransactionHandler) ProcessDeposit(ctx context.Context, req *pb.DepositRequest) (*pb.TransactionResponse, error) {
@@ -28,6 +30,11 @@ func (h *TransactionHandler) ProcessDeposit(ctx context.Context, req *pb.Deposit
 	if err != nil {
 		log.Printf("Failed to save transaction: %v", err)
 		return nil, err
+	}
+
+	err = h.broker.PublishDeposit(req.AccountId, req.Amount)
+	if err != nil {
+		log.Printf("Failed to publish event: %v", err)
 	}
 
 	log.Printf("Deposit processed: %s | Account: %s | Amount: %f", transactionID, req.AccountId, req.Amount)
