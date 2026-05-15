@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS accounts (
+    account_id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL,
+    currency VARCHAR(10) NOT NULL,
+    balance DECIMAL(15, 2) DEFAULT 0.0,
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

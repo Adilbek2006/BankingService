@@ -26,13 +26,14 @@ func main() {
 
 	repo := repository.NewAccountRepository(db)
 
-	rmq, err := broker.NewRabbitMQ("amqp://guest:guest@127.0.0.1:5673/", repo)
+	rmq, err := broker.NewRabbitMQ("amqp://guest:guest@127.0.0.1:5673/", repo, redisCache)
 	if err != nil {
 		log.Fatalf("RabbitMQ error: %v", err)
 	}
 	defer rmq.Close()
 
 	rmq.ConsumeDeposits()
+	rmq.ConsumeTransfers()
 
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
