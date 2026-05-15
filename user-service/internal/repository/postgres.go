@@ -18,23 +18,11 @@ func NewPostgresDB(host, port, user, password, dbname string) (*sql.DB, error) {
 	}
 
 	if err := db.Ping(); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 
-	createTableQuery := `
-	CREATE TABLE IF NOT EXISTS users (
-		user_id VARCHAR(50) PRIMARY KEY,
-		name VARCHAR(100) NOT NULL,
-		email VARCHAR(100) UNIQUE NOT NULL,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);`
-
-	_, err = db.Exec(createTableQuery)
-	if err != nil {
-		return nil, fmt.Errorf("error creating users table: %v", err)
-	}
-
-	log.Println("The users table is ready for use.")
+	log.Println("PostgreSQL connection ready")
 	return db, nil
 }
 

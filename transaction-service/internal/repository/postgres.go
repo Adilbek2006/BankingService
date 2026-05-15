@@ -18,26 +18,11 @@ func NewPostgresDB(host, port, user, password, dbname string) (*sql.DB, error) {
 	}
 
 	if err := db.Ping(); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 
-	createTableQuery := `
-	CREATE TABLE IF NOT EXISTS transactions (
-		transaction_id VARCHAR(50) PRIMARY KEY,
-		account_id VARCHAR(50) NOT NULL,
-		to_account_id VARCHAR(50),
-		amount DECIMAL(15, 2) NOT NULL,
-		type VARCHAR(20) NOT NULL,
-		status VARCHAR(20) DEFAULT 'SUCCESS',
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);`
-
-	_, err = db.Exec(createTableQuery)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create transactions table: %v", err)
-	}
-
-	log.Println("Transactions table ready")
+	log.Println("PostgreSQL connection ready")
 	return db, nil
 }
 
