@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS user_tokens (
     used BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user_tokens_user FOREIGN KEY (user_id) REFERENCES users(user_id)
-    );
+);
 
 CREATE INDEX IF NOT EXISTS idx_user_tokens_user_id ON user_tokens (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_tokens_type_used ON user_tokens (token_type, used);
