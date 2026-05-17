@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"strings"
 
 	"google.golang.org/grpc"
 
 	pb "BankingService/pb/user"
 	delivery "BankingService/user-service/internal/delivery/grpc"
+	"BankingService/user-service/internal/email"
 	"BankingService/user-service/internal/repository"
 )
 
@@ -28,7 +31,8 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	repo := repository.NewUserRepository(db)
-	userHandler := delivery.NewUserHandler(repo)
+	sender := buildSenderFromEnv()
+	userHandler := delivery.NewUserHandler(repo, sender)
 
 	pb.RegisterUserServiceServer(grpcServer, userHandler)
 
@@ -37,4 +41,26 @@ func main() {
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Server Error: %v", err)
 	}
+}
+
+func buildSenderFromEnv() email.Sender {
+	host := os.Getenv("SMTP_HOST")
+	port := os.Getenv("SMTP_PORT")
+	username := os.Getenv("SMTP_USER")
+	password := os.Getenv("SMTP_PASS")
+	from := os.Getenv("SMTP_FROM")
+	useTLS := strings.EqualFold(os.Getenv("SMTP_USE_TLS"), "true")
+	insecure := strings.EqualFold(os.Getenv("SMTP_INSECURE_SKIP_VERIFY"), "true")
+
+	if from == "" {
+		from = username
+	}
+
+	if host == "" || port == "" || from == "" {
+		log.Println("SMTP sender disabled: set SMTP_HOST, SMTP_PORT, SMTP_FROM")
+		return email.NewNoopSender()
+	}
+
+	log.Println("SMTP sender enabled")
+	return email.NewSMTPSender(host, port, username, password, from, useTLS, insecure)
 }
