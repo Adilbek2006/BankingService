@@ -5,10 +5,14 @@ import (
 	"os"
 	"strings"
 
+	"BankingService/user-service/internal/config"
 	"BankingService/user-service/internal/email"
 )
 
 func main() {
+	_ = config.LoadDotEnv(".env")
+	_ = config.LoadDotEnv("user-service/.env")
+
 	host := os.Getenv("SMTP_HOST")
 	port := os.Getenv("SMTP_PORT")
 	username := os.Getenv("SMTP_USER")

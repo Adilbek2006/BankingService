@@ -64,7 +64,7 @@ func (h *UserHandler) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 	}
 
 	subject := "Verify your email"
-	body := fmt.Sprintf("Your verification token: %s", verifyToken)
+	body := fmt.Sprintf("Hello,\r\n\r\nYour verification token:\r\n%s\r\n\r\nIf you did not request this, ignore this email.\r\n", verifyToken)
 	if err := h.sender.Send(req.Email, subject, body); err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (h *UserHandler) SendPasswordReset(ctx context.Context, req *pb.EmailReques
 	}
 
 	subject := "Password reset"
-	body := fmt.Sprintf("Your password reset token: %s", ok)
+	body := fmt.Sprintf("Hello,\r\n\r\nYour password reset token:\r\n%s\r\n\r\nIf you did not request this, ignore this email.\r\n", ok)
 	if err := h.sender.Send(req.Email, subject, body); err != nil {
 		return nil, err
 	}

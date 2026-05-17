@@ -105,7 +105,8 @@ func buildMessage(from, to, subject, body string) string {
 		"Subject: " + subject,
 		"MIME-Version: 1.0",
 		"Content-Type: text/plain; charset=\"utf-8\"",
+		"Content-Transfer-Encoding: 8bit",
 		"",
 	}
-	return strings.Join(headers, "\r\n") + body
+	return strings.Join(headers, "\r\n") + body + "\r\n"
 }

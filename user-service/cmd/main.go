@@ -10,12 +10,16 @@ import (
 	"google.golang.org/grpc"
 
 	pb "BankingService/pb/user"
+	"BankingService/user-service/internal/config"
 	delivery "BankingService/user-service/internal/delivery/grpc"
 	"BankingService/user-service/internal/email"
 	"BankingService/user-service/internal/repository"
 )
 
 func main() {
+	_ = config.LoadDotEnv(".env")
+	_ = config.LoadDotEnv("user-service/.env")
+
 	db, err := repository.NewPostgresDB("localhost", "5433", "user", "password", "banking")
 	if err != nil {
 		log.Fatalf("Error connecting to the database: %v", err)
