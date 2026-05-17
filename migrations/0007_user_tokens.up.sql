@@ -2,7 +2,7 @@ ALTER TABLE users
     ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT false;
 
 CREATE TABLE IF NOT EXISTS user_tokens (
-                                           token VARCHAR(100) PRIMARY KEY,
+    token VARCHAR(100) PRIMARY KEY,
     user_id VARCHAR(50) NOT NULL,
     token_type VARCHAR(20) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
