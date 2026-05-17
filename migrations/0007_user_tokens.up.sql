@@ -13,4 +13,3 @@ CREATE TABLE IF NOT EXISTS user_tokens (
 
 CREATE INDEX IF NOT EXISTS idx_user_tokens_user_id ON user_tokens (user_id);
 CREATE INDEX IF NOT EXISTS idx_user_tokens_type_used ON user_tokens (token_type, used);
-
