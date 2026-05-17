@@ -41,8 +41,9 @@ func main() {
 
 	router.POST("/users", func(c *gin.Context) {
 		var reqBody struct {
-			Name  string `json:"name"`
-			Email string `json:"email"`
+			Name     string `json:"name"`
+			Email    string `json:"email"`
+			Password string `json:"password"`
 		}
 		if err := c.ShouldBindJSON(&reqBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
@@ -52,9 +53,210 @@ func main() {
 		defer cancel()
 
 		grpcResp, err := userClient.CreateUser(ctx, &userPb.CreateUserRequest{
-			Name:  reqBody.Name,
-			Email: reqBody.Email,
+			Name:     reqBody.Name,
+			Email:    reqBody.Email,
+			Password: reqBody.Password,
 		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/users/:id", func(c *gin.Context) {
+		userID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.GetUserById(ctx, &userPb.UserIdRequest{UserId: userID})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.PATCH("/users/:id", func(c *gin.Context) {
+		userID := c.Param("id")
+		var reqBody struct {
+			Name string `json:"name"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.UpdateUserProfile(ctx, &userPb.UpdateUserRequest{
+			UserId: userID,
+			Name:   reqBody.Name,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.DELETE("/users/:id", func(c *gin.Context) {
+		userID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.DeleteUser(ctx, &userPb.UserIdRequest{UserId: userID})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.PATCH("/users/:id/password", func(c *gin.Context) {
+		userID := c.Param("id")
+		var reqBody struct {
+			OldPassword string `json:"old_password"`
+			NewPassword string `json:"new_password"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.ChangePassword(ctx, &userPb.ChangePasswordRequest{
+			UserId:      userID,
+			OldPassword: reqBody.OldPassword,
+			NewPassword: reqBody.NewPassword,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/users/:id/verify-email", func(c *gin.Context) {
+		userID := c.Param("id")
+		var reqBody struct {
+			Token string `json:"token"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.VerifyEmail(ctx, &userPb.VerifyEmailRequest{
+			UserId: userID,
+			Token:  reqBody.Token,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/users/password-reset", func(c *gin.Context) {
+		var reqBody struct {
+			Email string `json:"email"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.SendPasswordReset(ctx, &userPb.EmailRequest{Email: reqBody.Email})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/users/reset-password", func(c *gin.Context) {
+		var reqBody struct {
+			Token       string `json:"token"`
+			NewPassword string `json:"new_password"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.ResetPassword(ctx, &userPb.ResetPasswordRequest{
+			Token:       reqBody.Token,
+			NewPassword: reqBody.NewPassword,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.PATCH("/users/:id/kyc", func(c *gin.Context) {
+		userID := c.Param("id")
+		var reqBody struct {
+			Status string `json:"status"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.UpdateKYCStatus(ctx, &userPb.UpdateKYCRequest{
+			UserId: userID,
+			Status: reqBody.Status,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/users/:id/kyc", func(c *gin.Context) {
+		userID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.GetKYCStatus(ctx, &userPb.UserIdRequest{UserId: userID})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/users", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.ListUsers(ctx, &userPb.EmptyRequest{})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/users/:id/suspend", func(c *gin.Context) {
+		userID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := userClient.SuspendUser(ctx, &userPb.UserIdRequest{UserId: userID})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
