@@ -100,6 +100,192 @@ func main() {
 		c.JSON(http.StatusOK, grpcResp)
 	})
 
+	router.GET("/users/:id/accounts", func(c *gin.Context) {
+		userID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.ListUserAccounts(ctx, &accountPb.UserIdRequest{
+			UserId: userID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.PATCH("/accounts/:id/status", func(c *gin.Context) {
+		accountID := c.Param("id")
+		var reqBody struct {
+			Status string `json:"status"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.UpdateAccountStatus(ctx, &accountPb.UpdateStatusRequest{
+			AccountId: accountID,
+			Status:    reqBody.Status,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/accounts/:id/close", func(c *gin.Context) {
+		accountID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.CloseAccount(ctx, &accountPb.AccountIdRequest{
+			AccountId: accountID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/accounts/:id/freeze", func(c *gin.Context) {
+		accountID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.FreezeAccount(ctx, &accountPb.AccountIdRequest{
+			AccountId: accountID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/cards", func(c *gin.Context) {
+		var reqBody struct {
+			AccountId string `json:"account_id"`
+			CardType  string `json:"card_type"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.IssueCard(ctx, &accountPb.IssueCardRequest{
+			AccountId: reqBody.AccountId,
+			CardType:  reqBody.CardType,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/cards/:id", func(c *gin.Context) {
+		cardID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.GetCardDetails(ctx, &accountPb.CardIdRequest{
+			CardId: cardID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/cards/:id/block", func(c *gin.Context) {
+		cardID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.BlockCard(ctx, &accountPb.CardIdRequest{
+			CardId: cardID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.PATCH("/cards/:id/limit", func(c *gin.Context) {
+		cardID := c.Param("id")
+		var reqBody struct {
+			Limit float64 `json:"limit"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.SetCardLimit(ctx, &accountPb.SetLimitRequest{
+			CardId: cardID,
+			Limit:  reqBody.Limit,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.PATCH("/accounts/:id/tier", func(c *gin.Context) {
+		accountID := c.Param("id")
+		var reqBody struct {
+			Tier string `json:"tier"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.UpdateAccountTier(ctx, &accountPb.UpdateTierRequest{
+			AccountId: accountID,
+			Tier:      reqBody.Tier,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/accounts/:id/limits", func(c *gin.Context) {
+		accountID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := accountClient.GetAccountLimits(ctx, &accountPb.AccountIdRequest{
+			AccountId: accountID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
 	router.POST("/transactions/deposit", func(c *gin.Context) {
 		var reqBody struct {
 			AccountId string  `json:"account_id"`
