@@ -334,6 +334,176 @@ func main() {
 		c.JSON(http.StatusOK, grpcResp)
 	})
 
+	router.POST("/transactions/withdrawal", func(c *gin.Context) {
+		var reqBody struct {
+			AccountId string  `json:"account_id"`
+			Amount    float64 `json:"amount"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.ProcessWithdrawal(ctx, &transactionPb.WithdrawalRequest{
+			AccountId: reqBody.AccountId,
+			Amount:    reqBody.Amount,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/transactions/:id/status", func(c *gin.Context) {
+		transactionID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.GetTransactionStatus(ctx, &transactionPb.TransactionIdRequest{
+			TransactionId: transactionID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/accounts/:id/transactions", func(c *gin.Context) {
+		accountID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.GetTransactionHistory(ctx, &transactionPb.AccountIdRequest{
+			AccountId: accountID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/transactions/pending", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.ListPendingTransactions(ctx, &transactionPb.EmptyRequest{})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/transactions/:id/approve", func(c *gin.Context) {
+		transactionID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.ApproveTransaction(ctx, &transactionPb.TransactionIdRequest{
+			TransactionId: transactionID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/transactions/:id/reject", func(c *gin.Context) {
+		transactionID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.RejectTransaction(ctx, &transactionPb.TransactionIdRequest{
+			TransactionId: transactionID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/transactions/:id/reverse", func(c *gin.Context) {
+		transactionID := c.Param("id")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.ReverseTransaction(ctx, &transactionPb.TransactionIdRequest{
+			TransactionId: transactionID,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/transactions/statement", func(c *gin.Context) {
+		var reqBody struct {
+			AccountId string `json:"account_id"`
+			StartDate string `json:"start_date"`
+			EndDate   string `json:"end_date"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.GenerateStatement(ctx, &transactionPb.StatementRequest{
+			AccountId: reqBody.AccountId,
+			StartDate: reqBody.StartDate,
+			EndDate:   reqBody.EndDate,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.POST("/transactions/fee", func(c *gin.Context) {
+		var reqBody struct {
+			Amount       float64 `json:"amount"`
+			TransferType string  `json:"transfer_type"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.CalculateTransferFee(ctx, &transactionPb.FeeRequest{
+			Amount:       reqBody.Amount,
+			TransferType: reqBody.TransferType,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
+	router.GET("/transactions/volume/daily", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		grpcResp, err := txClient.GetDailyTransactionVolume(ctx, &transactionPb.EmptyRequest{})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, grpcResp)
+	})
+
 	log.Println("API Gateway running on port 8080")
 	if err := router.Run(":8080"); err != nil {
 		log.Fatalf("Gateway run error: %v", err)

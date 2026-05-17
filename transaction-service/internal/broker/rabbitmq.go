@@ -65,6 +65,13 @@ func (r *RabbitMQ) PublishDeposit(accountID string, amount float64) error {
 	})
 }
 
+func (r *RabbitMQ) PublishWithdrawal(accountID string, amount float64) error {
+	if amount < 0 {
+		amount = -amount
+	}
+	return r.PublishDeposit(accountID, -amount)
+}
+
 func (r *RabbitMQ) PublishTransfer(fromAccount, toAccount string, amount float64) error {
 	event := TransferEvent{
 		FromAccount: fromAccount,
