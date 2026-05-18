@@ -14,6 +14,7 @@ import (
 	delivery "BankingService/user-service/internal/delivery/grpc"
 	"BankingService/user-service/internal/email"
 	"BankingService/user-service/internal/repository"
+	"BankingService/user-service/internal/usecase"
 )
 
 func main() {
@@ -36,7 +37,8 @@ func main() {
 
 	repo := repository.NewUserRepository(db)
 	sender := buildSenderFromEnv()
-	userHandler := delivery.NewUserHandler(repo, sender)
+	uc := usecase.NewUserUsecase(repo, sender)
+	userHandler := delivery.NewUserHandler(uc)
 
 	pb.RegisterUserServiceServer(grpcServer, userHandler)
 
